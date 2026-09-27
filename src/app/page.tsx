@@ -1,50 +1,36 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
-
+import {AnimatePresence,motion} from "framer-motion";
+import {useState} from "react";
+import {welcomeScene} from "./assets/welcome";
+import {shuffleScene} from "./assets/shuffle";
 type Phase="intro"|"focus"|"shuffle"|"choose"|"reveal";
-const cards=[
- {name:"EL SOL",symbol:"☀",meaning:"Claridad · vitalidad · una verdad que empieza a mostrarse."},
- {name:"LA LUNA",symbol:"☾",meaning:"Intuición · incertidumbre · aquello que todavía no se ve completo."},
- {name:"LA JUSTICIA",symbol:"⚖",meaning:"Equilibrio · responsabilidad · observar los hechos antes de decidir."},
- {name:"EL ERMITAÑO",symbol:"✦",meaning:"Pausa · introspección · encontrar una respuesta propia."},
- {name:"LA ESTRELLA",symbol:"✧",meaning:"Esperanza · apertura · recuperar perspectiva."},
-];
+const meanings=["Claridad · vitalidad · nuevos comienzos.","Intuición · misterio · mirar más allá de lo evidente.","Equilibrio · responsabilidad · observar los hechos.","Pausa · introspección · escuchar tu propia respuesta.","Esperanza · apertura · recuperar perspectiva."];
 export default function Home(){
- const [phase,setPhase]=useState<Phase>("intro");
- const [picked,setPicked]=useState<number|null>(null);
- const chosen=useMemo(()=>picked===null?null:cards[picked%cards.length],[picked]);
- const start=()=>setPhase("focus");
- const shuffle=()=>{setPhase("shuffle");setTimeout(()=>setPhase("choose"),2200)};
- const reset=()=>{setPicked(null);setPhase("intro")};
- return <main className="shell">
-  <header className="header"><span className="mark">✦</span><strong>LUSORA</strong><span className="lab">EXPERIENCE LAB</span></header>
-  <div className="ambient a1"/><div className="ambient a2"/><div className="stars"/><div className="hieroglyphs">𓂀 𓆣 𓋹 𓁹 𓃭 𓊹 𓂀</div>
+ const [phase,setPhase]=useState<Phase>("intro"); const [picked,setPicked]=useState(0);
+ const goShuffle=()=>{setPhase("shuffle");setTimeout(()=>setPhase("choose"),2600)};
+ const bg=phase==="intro"||phase==="focus"?welcomeScene:shuffleScene;
+ return <main className={"cinema phase-"+phase}>
+  <motion.div className="photo" key={bg} style={{backgroundImage:`url("${bg}")`}} initial={{scale:1.035,opacity:0}} animate={{scale:1,opacity:1}} transition={{duration:.8}}/>
+  <div className="shade"/>
+  <header className="topbar"><button onClick={()=>setPhase("intro")}>‹</button><span>{phase==="intro"?"LUSORA":"TAROT EGIPCIO"}</span><b>☰</b></header>
   <AnimatePresence mode="wait">
-   {phase==="intro"&&<motion.section key="intro" className="screen introScreen" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0,y:-20}}>
-    <p className="eyebrow">TAROT EGIPCIO · PROTOTIPO 01</p><h1>Una pregunta.<br/><em>Una carta.</em></h1>
-    <p className="copy">Esta primera prueba valida ritmo, profundidad, selección y revelación. Las imágenes finales y las manos reales se incorporan después.</p>
-    <div className="altar"><div className="obelisk ob1">𓂀</div><div className="obelisk ob2">𓋹</div><div className="candle c1"><i/></div><motion.div className="deckHero" animate={{y:[0,-7,0]}} transition={{duration:4,repeat:Infinity}}><b>☥</b><small>LUSORA</small></motion.div><div className="candle c2"><i/></div></div>
-    <button className="primary" onClick={start}>Comenzar la lectura <span>→</span></button>
+   {phase==="intro"&&<motion.section className="heroOverlay" key="i" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} exit={{opacity:0}}>
+    <div><h1>Bienvenido a<br/>Lusora</h1><p>Tarot, oráculos, astrología y más.<br/>Una guía para tu camino.</p><button className="goldBtn" onClick={()=>setPhase("focus")}>Comenzar mi lectura →</button></div>
    </motion.section>}
-   {phase==="focus"&&<motion.section key="focus" className="screen ritual" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
-    <p className="step">01 · PREPARACIÓN</p><h2>Concentrate en<br/><em>tu pregunta.</em></h2><p className="copy">No hace falta escribirla todavía. Tomate unos segundos y, cuando estés listo, tocá el mazo.</p>
-    <button className="deckButton" onClick={shuffle} aria-label="Barajar cartas"><motion.div whileTap={{scale:.94}} className="deckStack"><span>☥</span></motion.div><small>TOCÁ PARA BARAJAR</small></button>
+   {phase==="focus"&&<motion.section className="questionOverlay" key="f" initial={{opacity:0}} animate={{opacity:1}}>
+    <div className="progress"><i/><i/><i/></div><h2>Una pregunta.<br/>Una guía.</h2><p>Tomate un momento para conectar con tu energía. Pensá en tu pregunta y cuando estés listo, continuá.</p>
+    <textarea placeholder="Escribe tu pregunta (opcional)"/><button className="goldBtn" onClick={goShuffle}>Continuar →</button>
    </motion.section>}
-   {phase==="shuffle"&&<motion.section key="shuffle" className="screen ritual" initial={{opacity:0}} animate={{opacity:1}}>
-    <p className="step">02 · BARAJANDO</p><h2>Dejá que el mazo<br/><em>encuentre su ritmo.</em></h2>
-    <div className="shuffleStage"><div className="hand handLeft"><i/><i/><i/><i/></div><div className="hand handRight"><i/><i/><i/><i/></div>{[0,1,2,3,4,5].map(i=><motion.div key={i} className="miniCard" initial={{x:0,rotate:0}} animate={{x:[0,(i%2?1:-1)*(48+i*4),0],y:[0,-8*i,0],rotate:[0,(i%2?1:-1)*(5+i),0]}} transition={{duration:.7,repeat:2,delay:i*.04}}><span>☥</span></motion.div>)}</div>
-    <p className="whisper">Respirá. No hay una elección correcta.</p>
+   {phase==="shuffle"&&<motion.section className="shuffleOverlay" key="s" initial={{opacity:0}} animate={{opacity:1}}>
+    <div className="progress"><i className="on"/><i/><i/></div><h2>Conectando con tu energía</h2><p>Las cartas se están preparando...</p><div className="loading"><span>☼</span> Barajando las cartas…<b/></div>
    </motion.section>}
-   {phase==="choose"&&<motion.section key="choose" className="screen chooseScreen" initial={{opacity:0}} animate={{opacity:1}}>
-    <p className="step">03 · ELECCIÓN</p><h2>Elegí la carta que<br/><em>te llame.</em></h2><p className="copy">Tocá una. La posición es tu elección; el contenido ya está determinado.</p>
-    <div className="tableSigil">☥</div><div className="fan">{Array.from({length:9}).map((_,i)=>{const rot=(i-4)*7;return <motion.button aria-label={"Carta "+(i+1)} key={i} className="fanCard" initial={{y:120,opacity:0}} animate={{y:Math.abs(i-4)*5,opacity:1,rotate:rot,x:(i-4)*-5}} transition={{delay:i*.055}} whileHover={{y:-14}} whileTap={{y:-22,scale:1.04}} onClick={()=>{setPicked(i);setPhase("reveal")}}><span>☥</span></motion.button>})}</div>
-    <p className="whisper">Elegí sin apurarte.</p>
+   {phase==="choose"&&<motion.section className="chooseOverlay" key="c" initial={{opacity:0}} animate={{opacity:1}}>
+    <div className="progress"><i className="on"/><i className="on"/><i/></div><h2>Elegí una carta</h2><p>Confiá en tu intuición. Tocá la carta que te llame la atención.</p>
+    <div className="cardGrid">{Array.from({length:9}).map((_,i)=><motion.button key={i} whileTap={{scale:.94}} onClick={()=>{setPicked(i);setPhase("reveal")}}><span>𓂀</span></motion.button>)}</div>
    </motion.section>}
-   {phase==="reveal"&&chosen&&<motion.section key="reveal" className="screen revealScreen" initial={{opacity:0}} animate={{opacity:1}}>
-    <p className="step">04 · REVELACIÓN</p><div className="revealStage"><div className="sunHalo"/><motion.div className="revealedCard" initial={{y:120,rotateY:180,scale:.7}} animate={{y:0,rotateY:0,scale:1}} transition={{duration:1.15,type:"spring",bounce:.2}}><div className="cardFrame"><small>ARCANO</small><b>{chosen.symbol}</b><strong>{chosen.name}</strong><i>☥</i></div></motion.div></div>
-    <motion.div className="reading" initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:.8}}><p className="eyebrow">PRIMERA IMPRESIÓN</p><p>{chosen.meaning}</p><small>En la experiencia final, la interpretación se construirá con tu pregunta, la posición de la carta y la conversación.</small></motion.div>
-    <button className="secondary" onClick={reset}>Repetir experiencia</button>
+   {phase==="reveal"&&<motion.section className="revealOverlay" key="r" initial={{opacity:0}} animate={{opacity:1}}>
+    <div className="progress"><i className="on"/><i className="on"/><i className="on"/></div><motion.div className="sunCard" initial={{rotateY:180,y:80,scale:.7}} animate={{rotateY:0,y:0,scale:1}} transition={{duration:1}}><small>XIX</small><strong>☀</strong><b>EL SOL</b></motion.div>
+    <h2>El Sol</h2><h3>Éxito · Claridad · Nuevos comienzos</h3><p>{meanings[picked%meanings.length]}</p><button className="goldBtn" onClick={()=>setPhase("intro")}>Hacer otra lectura ↻</button>
    </motion.section>}
   </AnimatePresence>
  </main>
